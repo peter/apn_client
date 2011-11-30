@@ -1,4 +1,4 @@
-# APN BroadCast RubyGem
+# APN Client RubyGem
 
 ## Introduction
 
