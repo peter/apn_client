@@ -33,21 +33,21 @@ ApnClient::Feedback.connection_config = {
 ### 2. Deliver Your Message
 
 ```
-message1 = ApnClient::Message.new(
+message1 = ApnClient::Message.new(1,
   :device_token => "7b7b8de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf1d099",
   :alert => "New version of the app is out. Get it now in the app store!",
-  :badge_count => 2
+  :badge => 2
 )
-message1 = ApnClient::Message.new(
+message2 = ApnClient::Message.new(2,
   :device_token => "6a5g4de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf1d044",
   :alert => "New version of the app is out. Get it now in the app store!",
-  :badge_count => 1
+  :badge => 1
 )
 delivery = ApnClient::Delivery.new([message1, message2],
   :callbacks => {
     :on_write => lambda { |d, m| puts "Wrote message #{m}" },
     :on_exception => lambda { |d, m, e| puts "Exception #{e} raised when delivering message #{m}" },
-    :on_failure => lambda { |d, m| puts "Failed/skipping message #{m}" },
+    :on_failure => lambda { |d, m| puts "Skipping failed message #{m}" },
     :on_error => lambda { |d, message_id, error_code| puts "Received error code #{error_code} from Apple for message #{message_id}" }
   },
   :consecutive_failure_limit => 10, # If more than 10 devices in a row fail, we abort the whole delivery
@@ -56,6 +56,10 @@ delivery = ApnClient::Delivery.new([message1, message2],
 delivery.process!
 puts "Delivered successfully to #{delivery.success_count} out of #{delivery.total_count} devices in #{delivery.elapsed} seconds"
 ```
+
+One potential gotcha to watch out for is that the device token for a message is per device and per application. This means
+that different apps on the same device will have different tokens. The Apple documentation uses phone numbers as an analogy
+to explain what a device token is.
 
 ### 3. Check for Feedback
 
