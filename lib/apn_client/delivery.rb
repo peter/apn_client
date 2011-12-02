@@ -1,15 +1,23 @@
+require 'apn_client/named_args'
+require 'apn_client/message'
+require 'apn_client/connection'
+
 module ApnClient
   class Delivery
-    attr_accessor :message_queue, :callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception,
+    attr_accessor :messages, :callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception,
       :exception_count, :success_count, :failure_count, :consecutive_failure_count,
       :started_at, :finished_at
 
+    # Creates a new APN delivery
+    #
+    # @param [#next] messages should be Enumerator type object that responds to #next. If it's an Array #shift will be used instead.
     def initialize(messages, options = {})
-      initialize_message_queue(messages)
+      self.messages = messages
       initialize_options(options)
       self.exception_count = 0
       self.success_count = 0
       self.failure_count = 0
+      self.consecutive_failure_count = 0
     end
 
     def process!
@@ -22,25 +30,25 @@ module ApnClient
     end
 
     def elapsed
-      finished_at ? (finished_at - started_at) : (Time.now - started_at)
+      if started_at
+        finished_at ? (finished_at - started_at) : (Time.now - started_at)
+      else
+        0
+      end
+    end
+
+    def total_count
+      success_count + failure_count
     end
 
     private
 
-    def initialize_message_queue(messages)
-      if messages.respond_to?(:next)
-        self.message_queue = messages
-      else
-        self.message_queue = messages.to_enum
-      end
-    end
-
     def initialize_options(options)
-      check_option_keys_valid!(options)
-      check_callback_keys_valid!(options[:callbacks])
+      NamedArgs.assert_valid!(options, :optional => [:callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception])
+      NamedArgs.assert_valid!(options[:callbacks], :optional => [:on_write, :on_error, :on_nil_select, :on_read_exception, :on_exception, :on_failure])
       self.callbacks = options[:callbacks]
-      self.consecutive_failures_limit = options[:consecutive_failures_limit]
-      self.exception_limit = options[:exception_limit]
+      self.consecutive_failure_limit = options[:consecutive_failure_limit] || 10
+      self.exception_limit = options[:exception_limit] || 3
       self.sleep_on_exception = options[:sleep_on_exception] || 1      
     end
     
@@ -50,7 +58,7 @@ module ApnClient
     end
     
     def next_message!
-      @current_message = message_queue.next
+      @current_message = (messages.respond_to?(:next) ? messages.next : messages.shift)
     rescue StopIteration
       nil
     end
@@ -103,7 +111,7 @@ module ApnClient
         select_return = nil
         if connection && select_return = connection.select
           response = connection.read(6)
-          command, status_code, message_id = response.unpack('cci') if response
+          command, error_code, message_id = response.unpack('cci') if response
         else
           invoke_callback(:on_nil_select)
         end
@@ -115,6 +123,7 @@ module ApnClient
     end
 
     def handle_exception!(e)
+      invoke_callback(:on_exception, e)
       self.exception_count += 1
       fail_message! if exception_limit_reached?
       sleep(sleep_on_exception) if sleep_on_exception
@@ -126,7 +135,7 @@ module ApnClient
 
     # # Give up on the message and move on to the next one
     def fail_message!
-      self.failure_count += 1; self.consecutive_failures += 1; self.exception_count = 0
+      self.failure_count += 1; self.consecutive_failure_count += 1; self.exception_count = 0
       invoke_callback(:on_failure, current_message)
       next_message!
     end

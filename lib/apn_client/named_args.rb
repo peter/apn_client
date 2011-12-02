@@ -1,6 +1,7 @@
 module ApnClient
   class NamedArgs
-    def self.assert_valid!(arguments, options = {})
+    def self.assert_valid!(arguments, options)
+      arguments ||= {}
       options[:optional] ||= []
       options[:required] ||= []
       assert_allowed!(arguments, options[:optional] + options[:required])

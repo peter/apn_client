@@ -57,9 +57,9 @@ describe ApnClient::Connection do
       ApnClient::Connection.any_instance.expects(:connect_to_socket)
       connection = ApnClient::Connection.new(valid_config)
       ssl_socket = mock('ssl_socket')
-      ssl_socket.expects(:write).with("foo", "bar")
+      ssl_socket.expects(:write).with('foo')
       connection.expects(:ssl_socket).returns(ssl_socket)
-      connection.write("foo", "bar")
+      connection.write(:foo)
     end
   end
 

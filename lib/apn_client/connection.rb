@@ -29,8 +29,8 @@ module ApnClient
       self.tcp_socket = nil
     end
 
-     def write(*args)
-       ssl_socket.write(*args)
+     def write(arg)
+       ssl_socket.write(arg.to_s)
      end
 
      def read(*args)

@@ -86,5 +86,9 @@ describe ApnClient::NamedArgs do
         ApnClient::NamedArgs.assert_valid!({:foo => 1, :bar => 2, :bla => 3}, :required => [:foo], :optional => [:bar])
       }.should raise_error(/bla/)
     end
+
+    it "does not raise an exception if args are nil and all keys are optional" do
+      ApnClient::NamedArgs.assert_valid!(nil, :optional => [:bar])
+    end
   end
 end
