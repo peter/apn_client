@@ -21,13 +21,6 @@ ApnClient::Delivery.connection_config = {
   :certificate_passphrase => '',
 }
 
-ApnClient::Feedback.connection_config = {
-  :host => 'feedback.push.apple.com', # For sandbox, use: feedback.sandbox.push.apple.com
-  :port => 2196,
-  :certificate => IO.read("my_apn_certificate.pem"),
-  :certificate_passphrase => '',
-}
-
 ```
 
 ### 2. Deliver Your Message
