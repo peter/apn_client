@@ -3,6 +3,7 @@ require 'spec_helper'
 describe ApnClient::Message do
   before(:each) do
     @device_token = "7b7b8de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf1d099"
+    @other_device_token = "8c7b8de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf5e699"
     @alert = "Hello, check out version 9.5 of our awesome app in the app store"
     @badge = 3
   end
@@ -41,13 +42,37 @@ describe ApnClient::Message do
     end
   end
 
+  describe "#==" do
+    before(:each) do
+      @message = create_message(3, :device_token => @device_token)
+      @other_message = create_message(5, :device_token => @other_device_token)
+    end
+    
+    it "returns false for nil" do
+      @message.should_not == nil
+    end
+    
+    it "returns false for an object that is not a Message" do      
+      @message.should_not == "foobar"
+    end
+    
+    it "returns false for a Message with a different message_id" do
+      @message.should_not == @other_message
+    end
+    
+    it "returns true for a Message with the same message_id" do
+      @other_message.message_id = @message.message_id
+      @message.should == @other_message
+    end
+  end
+
   describe "#payload_size" do
     it "returns number of bytes in the payload"
   end
 
   def create_message(message_id, config = {})
     message = ApnClient::Message.new(message_id, config)
-    message.message_id.should == 1
+    message.message_id.should == message_id
     [:device_token, :alert, :badge, :sound, :content_available].each do |attribute|
       message.send(attribute).should == config[attribute]
     end
