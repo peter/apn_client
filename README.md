@@ -10,20 +10,7 @@ This is a RubyGem that allows sending of Apple Push Notifications to iOS devices
 
 ## Usage
 
-### 1. Configure the Connection
-
-```
-
-ApnClient::Delivery.connection_config = {
-  :host => 'gateway.push.apple.com', # For sandbox, use: gateway.sandbox.push.apple.com
-  :port => 2195,
-  :certificate => IO.read("my_apn_certificate.pem"),
-  :certificate_passphrase => '',
-}
-
-```
-
-### 2. Deliver Your Message
+### Delivering Your Messages
 
 ```
 message1 = ApnClient::Message.new(1,
@@ -44,7 +31,13 @@ delivery = ApnClient::Delivery.new([message1, message2],
     :on_error => lambda { |d, message_id, error_code| puts "Received error code #{error_code} from Apple for message #{message_id}" }
   },
   :consecutive_failure_limit => 10, # If more than 10 devices in a row fail, we abort the whole delivery
-  :exception_limit => 3 # If a device raises an exception three times in a row we fail/skip the device and move on
+  :exception_limit => 3, # If a device raises an exception three times in a row we fail/skip the device and move on
+  :connection => {
+  	:host => 'gateway.push.apple.com', # For sandbox, use: gateway.sandbox.push.apple.com
+  	:port => 2195,
+  	:certificate => IO.read("my_apn_certificate.pem"),
+  	:certificate_passphrase => ''
+  }
 )
 delivery.process!
 puts "Delivered successfully to #{delivery.success_count} out of #{delivery.total_count} devices in #{delivery.elapsed} seconds"
@@ -54,7 +47,7 @@ One potential gotcha to watch out for is that the device token for a message is 
 that different apps on the same device will have different tokens. The Apple documentation uses phone numbers as an analogy
 to explain what a device token is.
 
-### 3. Check for Feedback
+### Checking for Feedback
 
 TODO
 

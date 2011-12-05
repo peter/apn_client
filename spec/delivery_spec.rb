@@ -18,7 +18,7 @@ describe ApnClient::Delivery do
 
   describe "#initialize" do
     it "initializes counts and other attributes" do
-      delivery = create_delivery([@message1, @message2])
+      delivery = create_delivery([@message1, @message2], :connection => {})
     end
   end
 
@@ -31,7 +31,7 @@ describe ApnClient::Delivery do
           :on_write => lambda { |d, m| written_messages << m },
           :on_nil_select => lambda { |d| nil_selects += 1 }
         }
-      delivery = create_delivery(messages.dup, :callbacks => callbacks)
+      delivery = create_delivery(messages.dup, :callbacks => callbacks, :connection => {})
 
       connection = mock('connection')
       connection.expects(:write).with(@message1)
@@ -60,7 +60,7 @@ describe ApnClient::Delivery do
           :on_failure => lambda { |d, m| failures << m },
           :on_read_exception => lambda { |d, e| read_exceptions << e }
         }
-      delivery = create_delivery(messages.dup, :callbacks => callbacks)
+      delivery = create_delivery(messages.dup, :callbacks => callbacks, :connection => {})
 
       connection = mock('connection')
       connection.expects(:write).with(@message1).times(3).raises(RuntimeError)
@@ -94,7 +94,7 @@ describe ApnClient::Delivery do
           :on_read_exception => lambda { |d, e| read_exceptions << e },
           :on_error => lambda { |d, message_id, error_code| errors << [message_id, error_code] }
         }
-      delivery = create_delivery(messages.dup, :callbacks => callbacks)
+      delivery = create_delivery(messages.dup, :callbacks => callbacks, :connection => {})
 
       connection = mock('connection')
       connection.expects(:write).with(@message1)

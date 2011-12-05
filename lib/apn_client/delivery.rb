@@ -4,7 +4,7 @@ require 'apn_client/connection'
 
 module ApnClient
   class Delivery
-    attr_accessor :messages, :callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception,
+    attr_accessor :messages, :callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception, :connection_config,
       :exception_count, :success_count, :failure_count, :consecutive_failure_count,
       :started_at, :finished_at
 
@@ -44,12 +44,15 @@ module ApnClient
     private
 
     def initialize_options(options)
-      NamedArgs.assert_valid!(options, :optional => [:callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception])
+      NamedArgs.assert_valid!(options,
+        :optional => [:callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception],
+        :required => [:connection])
       NamedArgs.assert_valid!(options[:callbacks], :optional => [:on_write, :on_error, :on_nil_select, :on_read_exception, :on_exception, :on_failure])
       self.callbacks = options[:callbacks]
       self.consecutive_failure_limit = options[:consecutive_failure_limit] || 10
       self.exception_limit = options[:exception_limit] || 3
-      self.sleep_on_exception = options[:sleep_on_exception] || 1      
+      self.sleep_on_exception = options[:sleep_on_exception] || 1
+      self.connection_config = options[:connection]
     end
     
     def current_message
@@ -75,7 +78,7 @@ module ApnClient
     end
 
     def connection
-      @connection ||= Connection.new(self.class.connection_config)
+      @connection ||= Connection.new(connection_config)
     end
 
     def close_connection
