@@ -1,6 +1,5 @@
 require 'socket'
 require 'openssl'
-require 'apn_client/named_args'
 
 module ApnClient
   class Connection

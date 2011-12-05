@@ -1,7 +1,3 @@
-require 'apn_client/named_args'
-require 'apn_client/message'
-require 'apn_client/connection'
-
 module ApnClient
   class Delivery
     attr_accessor :messages, :callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception, :connection_config,

@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-require 'apn_client/delivery'
-
 describe ApnClient::Delivery do
   before(:each) do
     @message1 = ApnClient::Message.new(1,

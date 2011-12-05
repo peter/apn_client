@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-require 'apn_client/message'
-
 describe ApnClient::Message do
   before(:each) do
     @device_token = "7b7b8de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf1d099"

@@ -1,5 +1,5 @@
-require "apn_client/version"
-
-module ApnClient
-  # Your code goes here...
-end
+require 'apn_client/version'
+require 'apn_client/named_args'
+require 'apn_client/connection'
+require 'apn_client/message'
+require 'apn_client/delivery'

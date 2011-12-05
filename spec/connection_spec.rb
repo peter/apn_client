@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-require 'apn_client/connection'
-
 describe ApnClient::Connection do
   describe "#initialize" do
     it "opens an SSL connection given host, port, certificate, and certificate_passphrase" do

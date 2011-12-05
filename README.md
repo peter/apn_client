@@ -13,6 +13,8 @@ This is a RubyGem that allows sending of Apple Push Notifications to iOS devices
 ### Delivering Your Messages
 
 ```
+require 'apn_client'
+
 message1 = ApnClient::Message.new(1,
   :device_token => "7b7b8de5888bb742ba744a2a5c8e52c6481d1deeecc283e830533b7c6bf1d099",
   :alert => "New version of the app is out. Get it now in the app store!",
@@ -26,7 +28,7 @@ message2 = ApnClient::Message.new(2,
 delivery = ApnClient::Delivery.new([message1, message2],
   :callbacks => {
     :on_write => lambda { |d, m| puts "Wrote message #{m}" },
-    :on_exception => lambda { |d, m, e| puts "Exception #{e} raised when delivering message #{m}" },
+    :on_exception => lambda { |d, e| puts "Exception #{e} raised when delivering message #{m}" },
     :on_failure => lambda { |d, m| puts "Skipping failed message #{m}" },
     :on_error => lambda { |d, message_id, error_code| puts "Received error code #{error_code} from Apple for message #{message_id}" }
   },

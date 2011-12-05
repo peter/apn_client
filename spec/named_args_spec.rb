@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-require 'apn_client/named_args'
-
 describe ApnClient::NamedArgs do
   describe ".assert_allowed!" do
     it "raises an exception if the argument hash contains a key not in the allowed list" do

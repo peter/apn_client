@@ -1,5 +1,3 @@
-require 'apn_client/named_args'
-
 module ApnClient
   class Message
     attr_accessor :message_id, :device_token, :alert, :badge, :sound, :content_available, :custom_properties
@@ -27,6 +25,10 @@ module ApnClient
     # We use the enhanced format. See the Apple documentation for details.
     def to_s
       [1, message_id, self.class.expires_at, 0, 32, device_token, 0, payload_size, payload].pack('ciiccH*cca*')
+    end
+
+    def ==(other_message)
+      other_message && other_message.is_a?(self.class) && other_message.message_id == self.message_id
     end
 
     def self.error_codes
