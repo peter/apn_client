@@ -6,7 +6,6 @@ This is a RubyGem that allows sending of Apple Push Notifications to iOS devices
 
 * Broadcasting of notifications to a large number of devices in a reliable fashion
 * Dealing with errors (via the enhanced format Apple protocol) when sending notifications
-* Reading from the Apple Feedback Service to avoid sending to devices with uninstalled applications
 
 ## Usage
 
