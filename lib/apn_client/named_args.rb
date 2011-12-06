@@ -21,5 +21,14 @@ module ApnClient
         raise "Missing required arguments: #{missing_keys.join(', ')}"
       end
     end
+
+    # Destructively convert all keys to symbols, as long as they respond
+    # to +to_sym+.
+    def self.symbolize_keys!(arguments)
+      arguments.keys.each do |key|
+        arguments[(key.to_sym rescue key) || key] = arguments.delete(key)
+      end
+      arguments
+    end
   end
 end

@@ -9,24 +9,31 @@ describe ApnClient::Message do
   end
 
   describe "#initialize" do
+    it "cannot be created without a message_id" do
+      lambda {
+        ApnClient::Message.new()
+      }.should raise_error(/message_id/)
+    end
+
     it "cannot be created without a token" do
       lambda {
-        ApnClient::Message.new(1)
+        ApnClient::Message.new(:message_id => 1)
       }.should raise_error(/device_token/)
     end
 
     it "can be created with a token and an alert" do
-      message = create_message(1, :device_token => @device_token, :alert => @alert)
+      message = create_message(:message_id => 1, :device_token => @device_token, :alert => @alert)
       message.payload_hash.should == {'aps' => {'alert' => @alert}}
     end
 
     it "can be created with a token and an alert and a badge" do
-      message = create_message(1, :device_token => @device_token, :alert => @alert, :badge => @badge)
+      message = create_message(:message_id => 1, :device_token => @device_token, :alert => @alert, :badge => @badge)
       message.payload_hash.should == {'aps' => {'alert' => @alert, 'badge' => @badge}}
     end
 
     it "can be created with a token and an alert and a badge and content-available" do
-      message = create_message(1,
+      message = create_message(
+        :message_id => 1,
         :device_token => @device_token,
         :alert => @alert,
         :badge => @badge,
@@ -37,15 +44,50 @@ describe ApnClient::Message do
     it "raises an exception if payload_size exceeds 256 bytes" do
       lambda {
         too_long_alert = "A"*1000
-        ApnClient::Message.new(1, :device_token => @device_token, :alert => too_long_alert)
+        ApnClient::Message.new(:message_id => 1, :device_token => @device_token, :alert => too_long_alert)
       }.should raise_error(/payload/i)
+    end
+  end
+
+  describe "attribute accessors" do
+    it "works with symbol keys" do
+      message = create_message(
+        :message_id => 1,
+        :device_token => @device_token,
+        :alert => @alert,
+        :badge => @badge,
+        :content_available => true)
+      message.message_id.should == 1
+      message.badge.should == @badge
+      message.message_id = 3
+      message.message_id.should == 3
+    end
+    
+    it "works with string keys too" do
+      message = create_message(
+        'message_id' => 1,
+        'device_token' => @device_token,
+        'alert' => @alert,
+        'badge' => @badge,
+        'content_available' => true)
+      message.message_id.should == 1
+      message.badge.should == @badge
+      message.message_id = 3
+      message.message_id.should == 3
+      message.attributes.should == {
+        :message_id => 3,
+        :device_token => @device_token,
+        :alert => @alert,
+        :badge => @badge,
+        :content_available => true        
+      }
     end
   end
 
   describe "#==" do
     before(:each) do
-      @message = create_message(3, :device_token => @device_token)
-      @other_message = create_message(5, :device_token => @other_device_token)
+      @message = create_message(:message_id => 3, :device_token => @device_token)
+      @other_message = create_message(:message_id => 5, :device_token => @other_device_token)
     end
     
     it "returns false for nil" do
@@ -66,15 +108,45 @@ describe ApnClient::Message do
     end
   end
 
-  describe "#payload_size" do
-    it "returns number of bytes in the payload"
+  describe "#to_hash" do
+    it "returns a hash with the attributes of the message" do
+      attributes = {
+        :message_id => 1,
+        :device_token => @device_token,
+        :alert => @alert,
+        :badge => @badge,
+        :content_available => true
+      }
+      message = create_message(attributes)
+      message.to_hash.should == attributes
+    end
   end
 
-  def create_message(message_id, config = {})
-    message = ApnClient::Message.new(message_id, config)
-    message.message_id.should == message_id
-    [:device_token, :alert, :badge, :sound, :content_available].each do |attribute|
-      message.send(attribute).should == config[attribute]
+  describe "#to_json" do
+    it "converts the attributes hash to JSON" do
+      attributes = {
+        :message_id => 1,
+        :device_token => @device_token,
+        :alert => @alert,
+        :badge => @badge,
+        :content_available => true
+      }
+      message = create_message(attributes)
+      message.to_hash.should == attributes
+      JSON.parse(message.to_json).should == {
+        'message_id' => 1,
+        'device_token' => @device_token,
+        'alert' => @alert,
+        'badge' => @badge,
+        'content_available' => true
+      }
+    end
+  end
+
+  def create_message(attributes = {})
+    message = ApnClient::Message.new(attributes)
+    attributes.keys.each do |attribute|
+      message.send(attribute).should == attributes[attribute]
     end
     message.payload_size.should < 256
     message.to_s.should_not be_nil

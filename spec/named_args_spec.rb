@@ -89,4 +89,18 @@ describe ApnClient::NamedArgs do
       ApnClient::NamedArgs.assert_valid!(nil, :optional => [:bar])
     end
   end
+  
+  describe ".symbolize_keys!" do
+    it "takes a hash and symbolizes its keys" do
+      attributes = {
+        'foo' => 1,
+        :bar => 2
+      }
+      ApnClient::NamedArgs.symbolize_keys!(attributes)
+      attributes.should == {
+        :foo => 1,
+        :bar => 2
+      }
+    end
+  end
 end

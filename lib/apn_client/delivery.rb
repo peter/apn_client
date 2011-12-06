@@ -7,6 +7,7 @@ module ApnClient
     # Creates a new APN delivery
     #
     # @param [#next] messages should be Enumerator type object that responds to #next. If it's an Array #shift will be used instead.
+    # @param [Hash] connection_config configuration parameters for the APN connection (port, host etc.) (required)
     def initialize(messages, options = {})
       self.messages = messages
       initialize_options(options)
@@ -42,13 +43,13 @@ module ApnClient
     def initialize_options(options)
       NamedArgs.assert_valid!(options,
         :optional => [:callbacks, :consecutive_failure_limit, :exception_limit, :sleep_on_exception],
-        :required => [:connection])
+        :required => [:connection_config])
       NamedArgs.assert_valid!(options[:callbacks], :optional => [:on_write, :on_error, :on_nil_select, :on_read_exception, :on_exception, :on_failure])
       self.callbacks = options[:callbacks]
       self.consecutive_failure_limit = options[:consecutive_failure_limit] || 10
       self.exception_limit = options[:exception_limit] || 3
       self.sleep_on_exception = options[:sleep_on_exception] || 1
-      self.connection_config = options[:connection]
+      self.connection_config = options[:connection_config]
     end
     
     def current_message

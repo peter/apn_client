@@ -1,24 +1,20 @@
 module ApnClient
   class Message
-    attr_accessor :message_id, :device_token, :alert, :badge, :sound, :content_available, :custom_properties
+    attr_accessor :attributes
 
     # Creates an APN message to to be sent over SSL to the APN service.
     #
-    # @param [Fixnum] message_id a unique (at least within a delivery) integer identifier for this message
-    # @param [String] device_token A 64 byte long hex digest supplied from an app installed on a device to the server
+    # @param [Fixnum] message_id a unique (at least within a delivery) integer identifier for this message (required)
+    # @param [String] device_token A 64 byte long hex digest supplied from an app installed on a device to the server (required)
     # @param [String] alert A text message to display to the user. Should be tweet sized (payload may not exceed 256 bytes)
     # @param [Fixnum] badge the number to show on the badge on the app icon - number of new/unread items
     # @param [String] sound filename of a sound file in the app bundle to be played to the user
     # @param [Boolean] content_available set to true if the message should trigger download of new content
-    def initialize(message_id, config = {})
-      self.message_id = message_id
-      self.device_token = device_token
-      NamedArgs.assert_valid!(config,
-        :optional => [:alert, :badge, :sound, :content_available],
-        :required => [:device_token])
-      config.keys.each do |key|
-        send("#{key}=", config[key])
-      end
+    def initialize(attributes = {})
+      self.attributes = NamedArgs.symbolize_keys!(attributes)
+      NamedArgs.assert_valid!(attributes,
+        :optional => self.class.optional_attributes,
+        :required => self.class.required_attributes)
       check_payload_size!
     end
 
@@ -51,6 +47,33 @@ module ApnClient
       (Time.now + 30*seconds_per_day).to_i
     end
 
+    # Delegate attribute reading and writing (#attribute_name and #attribute_name=)
+    # to the attributes hash.
+    def method_missing(method_name, *args)
+      method_match, attribute_name, equal_sign = method_name.to_s.match(/\A([^=]+)(=)?\Z/).to_a
+      if attribute_name && self.class.valid_attributes.include?(attribute_name.to_sym)
+        if equal_sign          
+          attributes[attribute_name.to_sym] = args.first
+        else
+          attributes[attribute_name.to_sym]
+        end
+      else
+        super
+      end
+    end
+
+    def self.optional_attributes
+      [:alert, :badge, :sound, :content_available]
+    end
+
+    def self.required_attributes
+      [:message_id, :device_token]
+    end
+
+    def self.valid_attributes
+      optional_attributes + required_attributes
+    end
+    
     # The payload is a JSON formated hash with alert, sound, badge, content-available,
     # and any custom properties, example:
     # {"aps" => {"badge" => 5, "sound" => "my_sound.aiff", "alert" => "Hello!"}}
@@ -73,6 +96,14 @@ module ApnClient
 
     def payload_size
       payload.bytesize
+    end
+
+    def to_hash
+      attributes
+    end
+
+    def to_json
+      to_hash.to_json
     end
 
     private
